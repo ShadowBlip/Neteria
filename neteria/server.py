@@ -40,6 +40,7 @@ You can run an example by running the following from the command line:
 `python -m neteria.server`"""
 
 import logging
+import threading
 import uuid
 
 from datetime import datetime
@@ -486,7 +487,11 @@ class NeteriaServer(object):
                                       self.compression,
                                       self.encryption, client_key)
             # Execute the event
-            self.middleware.event_execute(cuuid, euuid, event_data)
+            thread = threading.Thread(target=self.middleware.event_execute,
+                                      args=(cuuid, euuid, event_data)
+                                      )
+            thread.start()
+            
         else:
             logger.debug("<%s> <euuid:%s> Event ILLEGAL. Sending judgement "
                          "to client." % (cuuid, euuid))
