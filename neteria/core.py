@@ -69,6 +69,8 @@ def serialize_data(data, compression=False, encryption=False, public_key=None):
     if encryption and public_key:
         message = encryption.encrypt(message, public_key)
 
+    encoded_message = str.encode(message)
+
     return message
 
 
@@ -108,8 +110,10 @@ def unserialize_data(data, compression=False, encryption=False):
         logger.error("Decompression Error: " + str(err))
         message = False
 
+    decoded_message = str.decode(data)
+
     if not encryption and not compression:
-        message = json.loads(data)
+        message = json.loads(decoded_message)
 
     return message
 
