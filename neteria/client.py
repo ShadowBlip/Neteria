@@ -37,7 +37,7 @@ from .core import serialize_data
 from .core import unserialize_data
 
 from datetime import datetime
-from encryption import Encryption
+from neteria.encryption import Encryption
 from pprint import pformat
 
 try:

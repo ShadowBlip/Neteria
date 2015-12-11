@@ -377,7 +377,7 @@ class ListenerUDP(object):
         # to our application for processing.
         try:
             response = self.app.handle_message(data, address)
-        except Exception, err:
+        except Exception(err):
             logger.error("Error processing message from " + str(address) +
                           ":" + str(data))
             logger.error(traceback.format_exc())

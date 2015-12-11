@@ -127,21 +127,21 @@ if __name__ == '__main__':
 
     message = "hello asdmkasd" * 50
     # message = "hi"
-    print "Plain text:", message
+    print("Plain text:", message)
     message = zlib.compress(message)
     message = binascii.b2a_base64(message)
-    print ""
-    print "Compressed message:", message
-    print ""
+    print("")
+    print("Compressed message:", message)
+    print("")
 
     enc = Encryption()
 
     msg = enc.encrypt(message, enc.public_key)
     decrypted_msg = enc.decrypt(msg)
-    print "Encryped message:", msg
-    print ""
-    print "Decrypted message:", decrypted_msg
+    print("Encryped message:", msg)
+    print("")
+    print("Decrypted message:", decrypted_msg)
     decrypted_msg = binascii.a2b_base64(decrypted_msg)
     uncompressed_msg = zlib.decompress(decrypted_msg)
-    print ""
-    print "Decompressed message:", uncompressed_msg
+    print("")
+    print("Decompressed message:", uncompressed_msg)
