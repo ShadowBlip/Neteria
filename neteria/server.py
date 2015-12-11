@@ -378,7 +378,8 @@ class NeteriaServer(object):
 
          # For debugging, print all the current rows in the registry
         logger.debug("<%s> Registry entries:" % cuuid)
-        for key, value in self.registry.iteritems():
+        
+        for (key, value) in self.registry.items():
             logger.debug("<%s> %s %s" % (str(cuuid), str(key), pformat(value)))
 
         return response
