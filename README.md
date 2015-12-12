@@ -1,3 +1,6 @@
+## Version
+1.0.1
+
 ## Installing
 
 You can install Neteria by running the following command:
