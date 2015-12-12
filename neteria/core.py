@@ -60,6 +60,7 @@ def serialize_data(data, compression=False, encryption=False, public_key=None):
       The string message serialized using json.
 
     """
+    
     message = json.dumps(data)
 
     if compression:
@@ -68,9 +69,10 @@ def serialize_data(data, compression=False, encryption=False, public_key=None):
 
     if encryption and public_key:
         message = encryption.encrypt(message, public_key)
+        
+    encoded_message = str.encode(message)
 
-    return message
-
+    return encoded_message
 
 def unserialize_data(data, compression=False, encryption=False):
     """Unserializes the packet data and converts it from json format to normal
@@ -108,8 +110,10 @@ def unserialize_data(data, compression=False, encryption=False):
         logger.error("Decompression Error: " + str(err))
         message = False
 
+    decoded_message = data.decode()
+
     if not encryption and not compression:
-        message = json.loads(data)
+        message = json.loads(decoded_message)
 
     return message
 
@@ -377,7 +381,7 @@ class ListenerUDP(object):
         # to our application for processing.
         try:
             response = self.app.handle_message(data, address)
-        except Exception, err:
+        except Exception as err:
             logger.error("Error processing message from " + str(address) +
                           ":" + str(data))
             logger.error(traceback.format_exc())
