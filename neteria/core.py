@@ -60,7 +60,7 @@ def serialize_data(data, compression=False, encryption=False, public_key=None):
       The string message serialized using json.
 
     """
-    
+
     message = json.dumps(data)
 
     if compression:
@@ -69,7 +69,7 @@ def serialize_data(data, compression=False, encryption=False, public_key=None):
 
     if encryption and public_key:
         message = encryption.encrypt(message, public_key)
-        
+
     encoded_message = str.encode(message)
 
     return encoded_message
@@ -237,7 +237,7 @@ class ListenerUDP(object):
                     logger.info("connection reset")
                 else:
                     raise
-                    
+
         logger.info("Shutting down the listener...")
 
     def scheduler(self, sleep_time=0.2):

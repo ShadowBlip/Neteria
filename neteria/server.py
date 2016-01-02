@@ -92,7 +92,7 @@ class NeteriaServer(object):
 
     """
 
-    def __init__(self, middleware, version="1.0", app=None, server_address='',
+    def __init__(self, middleware, version="1.0.2", app=None, server_address='',
                  server_port=40080, server_name=None, compression=False, encryption=False,
                  timeout=2.0, max_retries=4, registration_limit=50, stats=False):
         self.version = version
@@ -380,7 +380,7 @@ class NeteriaServer(object):
 
          # For debugging, print all the current rows in the registry
         logger.debug("<%s> Registry entries:" % cuuid)
-        
+
         for (key, value) in self.registry.items():
             logger.debug("<%s> %s %s" % (str(cuuid), str(key), pformat(value)))
 
@@ -494,7 +494,7 @@ class NeteriaServer(object):
                                       args=(cuuid, euuid, event_data)
                                       )
             thread.start()
-            
+
         else:
             logger.debug("<%s> <euuid:%s> Event ILLEGAL. Sending judgement "
                          "to client." % (cuuid, euuid))
