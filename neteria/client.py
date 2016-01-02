@@ -271,11 +271,12 @@ class NeteriaClient(object):
             return response
 
         if "method" in msg_data:
+            print msg_data
             if msg_data["method"] == "OHAI Client":
                 logger.debug("<%s> Autodiscover response from server received "
                               "from: %s" % (self.cuuid, host[0]))
-                self.discovered_servers[host] = msg_data["version"]
-
+                self.discovered_servers[host]= [msg_data["version"], msg_data["server_name"]]
+                print self.discovered_servers
                 # Try to register with the discovered server
                 if self.autoregistering:
                     self.register(host)

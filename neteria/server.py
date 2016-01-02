@@ -93,7 +93,7 @@ class NeteriaServer(object):
     """
 
     def __init__(self, middleware, version="1.0", app=None, server_address='',
-                 server_port=40080, compression=False, encryption=False,
+                 server_port=40080, server_name=None, compression=False, encryption=False,
                  timeout=2.0, max_retries=4, registration_limit=50, stats=False):
         self.version = version
         self.allowed_versions = [
@@ -101,6 +101,7 @@ class NeteriaServer(object):
         self.event_uuids = {}
         self.middleware = middleware
         self.port = server_port
+        self.server_name = server_name
         self.compression = compression
 
         # Generate a keypair if encryption is enabled
@@ -298,7 +299,8 @@ class NeteriaServer(object):
             logger.debug("<%s> Client version matches server "
                          "version." % message["cuuid"])
             response = serialize_data({"method": "OHAI Client",
-                                       "version": self.version},
+                                       "version": self.version,
+                                       "server_name": self.server_name},
                                       self.compression,
                                       encryption=False)
         else:
