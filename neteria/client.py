@@ -21,7 +21,7 @@
 # Contributor(s):
 #
 # William Edwards <shadowapex@gmail.com>,
-#
+# Derek Clark <derekjohn.clark@gmail.com>
 """This module is used to create client objects that allows sending and
 receiving messages to a Neteria server.
 
@@ -409,21 +409,11 @@ class NeteriaClient(object):
 
 
     def authenticate(self, auth_data, priority="high"):
-        """This function will send event packets to the server. This is the
-        main method you would use to send data from your application to the
-        server.
-
-        Whenever an event is sent to the server, a universally unique event id
-        (euuid) is created for each event and stored in the "event_uuids"
-        dictionary. This dictionary contains a list of all events that are
-        currently waiting for a response from the server. The event will only
-        be removed from this dictionary if the server responds with LEGAL or
-        ILLEGAL or if the request times out.
+        """This function will an authentication packet to the server.
 
         Args:
-          event_data (dict): The event data to send to the server. This data
-            will be passed through the server's middleware to determine if the
-            event is legal or not, and then processed by the server it is legal
+          auth_data (dict): The authentication data to send to the server. This data
+            will be passed processed by the server's auth_server.
           priority (string): The event's priority informs the server of whether
             or not the client is going to wait for a confirmation message from
             the server indicating whether its event was LEGAL or ILLEGAL.
@@ -436,12 +426,12 @@ class NeteriaClient(object):
           A universally unique identifier (uuid) of the event.
 
         Examples:
-          >>> event_data
+          >>> auth_data
           >>> priority
 
         """
-
-        logger.debug("Authenticating client with server.")
+        logger.debug("<%s> <euuid:%s> Authenticating client with server: "
+               "%s" % (str(self.cuuid), str(euuid), str(self.server)))
 
         # Generate an event UUID for this event
         euuid = uuid.uuid1()

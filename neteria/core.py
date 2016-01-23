@@ -22,6 +22,7 @@
 # Contributor(s):
 #
 # William Edwards <shadowapex@gmail.com>,
+# Derek Clark <derekjohn.clark@gmail.com>
 #
 """This module is used for the core network functionality for neteria such as
 sending and receiving UDP datagrams."""

@@ -21,6 +21,7 @@
 # Contributor(s):
 #
 # William Edwards <shadowapex@gmail.com>
+# Derek Clark <derekjohn.clark@gmail.com>
 #
 """The server module provides a way to send and receive messages to clients
 and process incoming messages.
