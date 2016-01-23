@@ -85,6 +85,8 @@ class NeteriaServer(object):
         such as total bytes sent/recieved. Defaults to False.
       discoverable (boolean): Whether or not to respond to OHAI packets. Defaults
         to True.
+      auth_server (object): Instance of your authentication server. Must contain a
+        method verify_login that can recieve a msg_data dictionary.
     Examples:
       >>> from neteria.tools import _Middleware
       >>> from neteria.server import NeteriaServer
@@ -97,15 +99,17 @@ class NeteriaServer(object):
 
     def __init__(self, middleware, version="1.0.3", app=None, server_address='',
                  server_port=40080, server_name=None, compression=False, encryption=False,
-                 timeout=2.0, max_retries=4, registration_limit=50, stats=False, discoverable=True):
+                 timeout=2.0, max_retries=4, registration_limit=50, stats=False,
+                 discoverable=True, auth_server=None):
         self.version = version
-        self.allowed_versions = [
-            version]   # Client versions allowed to register.
+        self.allowed_versions = [version]   # Client versions allowed to register.
         self.event_uuids = {}
         self.middleware = middleware
         self.port = server_port
         self.server_name = server_name
         self.compression = compression
+        self.discoverable = discoverable
+        self.auth_server = auth_server
 
         # Generate a keypair if encryption is enabled
         if encryption:
@@ -242,43 +246,72 @@ class NeteriaServer(object):
                 response = self.register(msg_data, host)
 
             elif msg_data["method"] == "OHAI":
-                if not discoverable:
+                if not self.discoverable:
                     return False
                 logger.debug("<%s> Autodiscover packet received" % msg_data["cuuid"])
                 response = self.autodiscover(msg_data)
 
-            elif msg_data["method"] == "EVENT":
-                logger.debug("<%s> <euuid:%s> Event message "
-                             "received" % (msg_data["cuuid"], msg_data["euuid"]))
-                response = self.event(msg_data["cuuid"],
-                                      host,
-                                      msg_data["euuid"],
-                                      msg_data["event_data"],
-                                      msg_data["timestamp"],
-                                      msg_data["priority"])
+            elif msg_data["method"] == "AUTH":
+                logger.debug("<%s> Authentication packet recieved" % msg_data["cuuid"])
+                response = self.auth_server.verify_login(msg_data)
 
-            elif msg_data["method"] == "OK EVENT":
-                logger.debug("<%s> <euuid:%s> Event confirmation message "
-                             "received" % (msg_data["cuuid"], msg_data["euuid"]))
-                try:
-                    del self.event_uuids[msg_data["euuid"]]
-                except KeyError:
-                    logger.warning("<%s> <euuid:%s> Euuid does not exist in event "
-                                   "buffer. Key was removed before we could process "
-                                   "it." % (msg_data["cuuid"], msg_data["euuid"]))
-
-            elif msg_data["method"] == "OK NOTIFY":
-                logger.debug("<%s> <euuid:%s> Ok notify "
-                             "received" % (msg_data["cuuid"], msg_data["euuid"]))
-                try:
-                    del self.event_uuids[msg_data["euuid"]]
-                except KeyError:
-                    logger.warning("<%s> <euuid:%s> Euuid does not exist in event "
-                                   "buffer. Key was removed before we could process "
-                                   "it." % (msg_data["cuuid"], msg_data["euuid"]))
-
+            else:
+                if self.auth_server:
+                    if self.registry[host]["authenticated"]:
+                        response = self.handle_message_registered(msg_data, host)
+                else:
+                    response = self.handle_message_registered(msg_data, host)
 
         logger.debug("Packet processing completed")
+        return response
+
+
+    def handle_message_registered(self, msg_data, host):
+        """Processes messages that have been delivered by a registered client.
+
+        Args:
+          msg (string): The raw packet data delivered from the listener. This
+            data will be unserialized and then processed based on the packet's
+            method.
+          host (tuple): The (address, host) tuple of the source message.
+
+        Returns:
+          A response that will be sent back to the client via the listener.
+
+        """
+        response = None
+
+        if msg_data["method"] == "EVENT":
+            logger.debug("<%s> <euuid:%s> Event message "
+                         "received" % (msg_data["cuuid"], msg_data["euuid"]))
+            response = self.event(msg_data["cuuid"],
+                                  host,
+                                  msg_data["euuid"],
+                                  msg_data["event_data"],
+                                  msg_data["timestamp"],
+                                  msg_data["priority"])
+
+        elif msg_data["method"] == "OK EVENT":
+            logger.debug("<%s> <euuid:%s> Event confirmation message "
+                         "received" % (msg_data["cuuid"], msg_data["euuid"]))
+            try:
+                del self.event_uuids[msg_data["euuid"]]
+            except KeyError:
+                logger.warning("<%s> <euuid:%s> Euuid does not exist in event "
+                               "buffer. Key was removed before we could process "
+                               "it." % (msg_data["cuuid"], msg_data["euuid"]))
+
+        elif msg_data["method"] == "OK NOTIFY":
+            logger.debug("<%s> <euuid:%s> Ok notify "
+                         "received" % (msg_data["cuuid"], msg_data["euuid"]))
+            try:
+                del self.event_uuids[msg_data["euuid"]]
+            except KeyError:
+                logger.warning("<%s> <euuid:%s> Euuid does not exist in event "
+                               "buffer. Key was removed before we could process "
+                               "it." % (msg_data["cuuid"], msg_data["euuid"]))
+
+
         return response
 
 
@@ -378,6 +411,7 @@ class NeteriaServer(object):
                 self.registry[cuuid][key]=data[key]
         else:
             self.registry[cuuid] = data
+            self.registry[cuuid]["authenticated"] = False
 
         # Serialize our response to the client
         response = serialize_data(return_msg,

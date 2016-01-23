@@ -408,6 +408,83 @@ class NeteriaClient(object):
                                             "address": address})
 
 
+    def authenticate(self, auth_data, priority="high"):
+        """This function will send event packets to the server. This is the
+        main method you would use to send data from your application to the
+        server.
+
+        Whenever an event is sent to the server, a universally unique event id
+        (euuid) is created for each event and stored in the "event_uuids"
+        dictionary. This dictionary contains a list of all events that are
+        currently waiting for a response from the server. The event will only
+        be removed from this dictionary if the server responds with LEGAL or
+        ILLEGAL or if the request times out.
+
+        Args:
+          event_data (dict): The event data to send to the server. This data
+            will be passed through the server's middleware to determine if the
+            event is legal or not, and then processed by the server it is legal
+          priority (string): The event's priority informs the server of whether
+            or not the client is going to wait for a confirmation message from
+            the server indicating whether its event was LEGAL or ILLEGAL.
+            Setting this to "normal" informs the server that the client will
+            wait for a response from the server before processing the event.
+            Setting this to "high" informs the server that the client will NOT
+            wait for a response. Defaults to "normal".
+
+        Returns:
+          A universally unique identifier (uuid) of the event.
+
+        Examples:
+          >>> event_data
+          >>> priority
+
+        """
+
+        logger.debug("Authenticating client with server.")
+
+        # Generate an event UUID for this event
+        euuid = uuid.uuid1()
+        logger.debug("<%s> <euuid:%s> Sending auth data to server: "
+               "%s" % (str(self.cuuid), str(euuid), str(self.server)))
+        if not self.listener.listening:
+            logger.warning("Neteria client is not listening.")
+
+        # If we're not even registered, don't even bother.
+        if not self.registered:
+            logger.warning("<%s> <euuid:%s> Client is currently not registered. "
+                            "Event not sent." % (str(self.cuuid), str(euuid)))
+            return False
+
+        # Send the event data to the server
+        packet = {"method": "AUTH",
+                  "cuuid": str(self.cuuid),
+                  "euuid": str(euuid),
+                  "auth_data": auth_data,
+                  "timestamp": str(datetime.now()),
+                  "retry": 0,
+                  "priority": priority}
+
+        self.listener.send_datagram(
+            serialize_data(packet, self.compression,
+                           self.encryption, self.server_key),
+            self.server)
+
+        logger.debug("<%s> Sending AUTH Packet: %s" % (str(self.cuuid),
+                                                         pformat(packet)))
+
+        # Set the sent event to our event buffer to see if we need to roll back
+        # or anything
+        self.event_uuids[str(euuid)] = packet
+
+        # Now we need to reschedule a timeout/retransmit check
+        logger.debug("<%s> Scheduling retry in %s seconds" % (str(self.cuuid),
+                                                               str(self.timeout)))
+        self.listener.call_later(self.timeout, self.retransmit, packet)
+
+        return euuid
+
+
     def event(self, event_data, priority="normal"):
         """This function will send event packets to the server. This is the
         main method you would use to send data from your application to the
