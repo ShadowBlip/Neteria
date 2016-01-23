@@ -87,7 +87,7 @@ class NeteriaServer(object):
       discoverable (boolean): Whether or not to respond to OHAI packets. Defaults
         to True.
       auth_server (object): Instance of your authentication server. Must contain a
-        method verify_login that can recieve a msg_data dictionary.
+        method verify_login that can recieve a msg_data dictionary and return a boolean.
     Examples:
       >>> from neteria.tools import _Middleware
       >>> from neteria.server import NeteriaServer
@@ -255,6 +255,8 @@ class NeteriaServer(object):
             elif msg_data["method"] == "AUTH":
                 logger.debug("<%s> Authentication packet recieved" % msg_data["cuuid"])
                 response = self.auth_server.verify_login(msg_data)
+                if response:
+                    self.registry[host]["authenticated"] = True
 
             else:
                 if self.auth_server:
