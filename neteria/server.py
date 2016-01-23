@@ -68,7 +68,9 @@ class NeteriaServer(object):
       app (object): The instance of your application. Setting this will
         automatically set the app.server attribute to an instance of this
         class. Defaults to None.
-      port (int): The UDP port for the server to listen on. Defaults to 40080.
+      server_addres (string): The IP Address of the server.
+      server_port (int): The UDP port for the server to listen on. Defaults to 40080.
+      server_name (string): The hostname of the server. Defaults to None.
       compression (boolean): Whether or not to enable zlib compression on all
         network traffic. Defaults to False.
       encryption (boolean): Whether or not to enable RSA encryption on traffic
@@ -81,7 +83,8 @@ class NeteriaServer(object):
         connected and registered with the server. Defaults to 50.
       stats (boolean): Whether or not to keep track of network statistics
         such as total bytes sent/recieved. Defaults to False.
-
+      discoverable (boolean): Whether or not to respond to OHAI packets. Defaults
+        to True.
     Examples:
       >>> from neteria.tools import _Middleware
       >>> from neteria.server import NeteriaServer
@@ -92,9 +95,9 @@ class NeteriaServer(object):
 
     """
 
-    def __init__(self, middleware, version="1.0.2", app=None, server_address='',
+    def __init__(self, middleware, version="1.0.3", app=None, server_address='',
                  server_port=40080, server_name=None, compression=False, encryption=False,
-                 timeout=2.0, max_retries=4, registration_limit=50, stats=False):
+                 timeout=2.0, max_retries=4, registration_limit=50, stats=False, discoverable=True):
         self.version = version
         self.allowed_versions = [
             version]   # Client versions allowed to register.
@@ -239,6 +242,8 @@ class NeteriaServer(object):
                 response = self.register(msg_data, host)
 
             elif msg_data["method"] == "OHAI":
+                if not discoverable:
+                    return False
                 logger.debug("<%s> Autodiscover packet received" % msg_data["cuuid"])
                 response = self.autodiscover(msg_data)
 

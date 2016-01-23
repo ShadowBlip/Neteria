@@ -106,7 +106,7 @@ class NeteriaClient(object):
 
     """
 
-    def __init__(self, version="1.0.2", client_address='', client_port=None,
+    def __init__(self, version="1.0.3", client_address='', client_port=None,
                  server_port=40080, compression=False, encryption=False,
                  timeout=2.0, max_retries=4, stats=False):
         self.version = version

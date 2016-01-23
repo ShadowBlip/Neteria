@@ -2,7 +2,7 @@
 from setuptools import setup
 
 setup(name='neteria',
-      version='1.0.2',
+      version='1.0.3',
       description='A simple game networking library.',
       keywords='gaming networking network game',
       author='William Edwards',
